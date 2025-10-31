@@ -405,6 +405,10 @@ PrefabInstance:
       propertyPath: planeObjects.Array.data[1]
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 3255022760953133545, guid: b43189b261145aa49b37f0b57eaf5bef, type: 3}
+      propertyPath: m_CastShadows
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6988472050468893402, guid: b43189b261145aa49b37f0b57eaf5bef, type: 3}
       propertyPath: m_LocalPosition.x
       value: -1.75
