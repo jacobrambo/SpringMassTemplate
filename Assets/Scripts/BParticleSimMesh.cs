@@ -63,6 +63,15 @@ public class BParticleSimMesh : MonoBehaviour
      * - the plane (BPlane)
      ***/
 
+    public Transform groundPlaneTransform;   // the ground plane transform
+    public bool handlePlaneCollisions = true; // handle plane collisions flag
+    public float particleMass = 1.0f;        // particle mass
+    public bool useGravity = true;           // use gravity flag
+    public Vector3 gravity = new Vector3(0, -9.81f, 0); // gravity value
+    private Mesh mesh;                      // the mesh
+    private BParticle[] particles;          // array of particles
+    private BPlane plane;             // the plane
+
 
 
     /// <summary>
@@ -81,10 +90,71 @@ public class BParticleSimMesh : MonoBehaviour
     /// </summary>
     void Start()
     {
-
+        mesh = GetComponent<MeshFilter>().mesh;
+        InitParticles();
+        InitPlane();
     }
 
+    void InitParticles()
+    {
+        Vector3[] vertsLocal = mesh.vertices;
+        int count = vertsLocal.Length;
+        particles = new BParticle[count];
 
+        // 1️⃣ Create a particle per vertex
+        for (int i = 0; i < count; i++)
+        {
+            BParticle p = new BParticle();
+            p.position = transform.TransformPoint(vertsLocal[i]);   // local → world
+            p.velocity = Vector3.zero;
+            p.mass = particleMass;
+            p.currentForces = Vector3.zero;
+            p.attachedSprings = new List<BSpring>();
+            p.attachedToContact = false;
+
+            p.contactSpring.ks = contactSpringKS;
+            p.contactSpring.kd = contactSpringKD;
+            p.contactSpring.restLength = 0f;
+            p.contactSpring.attachPoint = Vector3.zero;
+
+            particles[i] = p;
+        }
+
+        // 2️⃣ Connect each unique pair with one spring
+        for (int i = 0; i < count; i++)
+        {
+            for (int j = i + 1; j < count; j++)
+            {
+                float restLen = Vector3.Distance(particles[i].position, particles[j].position);
+                BSpring s = new BSpring
+                {
+                    ks = defaultSpringKS,
+                    kd = defaultSpringKD,
+                    restLength = restLen,
+                    attachedParticle = j
+                };
+                particles[i].attachedSprings.Add(s);
+            }
+        }
+
+        Debug.Log($"Initialized {count} particles with {count * (count - 1) / 2} springs.");
+    }
+
+    void InitPlane()
+    {
+        // If a Transform is assigned, use its position and orientation
+        if (groundPlaneTransform != null)
+        {
+            plane.position = groundPlaneTransform.position;
+            plane.normal = groundPlaneTransform.up.normalized;
+        }
+        // Otherwise default to world-origin horizontal plane
+        else
+        {
+            plane.position = Vector3.zero;
+            plane.normal = Vector3.up;
+        }
+    }
 
     /*** BIG HINT: My solution code has as least the following functions
      * InitParticles()
