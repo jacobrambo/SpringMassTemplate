@@ -93,6 +93,10 @@ public class BParticleSimMesh : MonoBehaviour
         mesh = GetComponent<MeshFilter>().mesh;
         InitParticles();
         InitPlane();
+
+        // Temporary debug checks
+        // DebugResetForces();
+        // DebugUpdateMesh();
     }
 
     void InitParticles()
@@ -164,7 +168,63 @@ public class BParticleSimMesh : MonoBehaviour
      * ...
      ***/
 
+    void UpdateMesh()
+    {
+        if (mesh == null || particles == null) return;
 
+        Vector3[] updatedVerts = new Vector3[particles.Length];
+        for (int i = 0; i < particles.Length; i++)
+        {
+            updatedVerts[i] = transform.InverseTransformPoint(particles[i].position);
+        }
+        mesh.vertices = updatedVerts;
+        mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
+    }
+    
+    void DebugUpdateMesh()
+    {
+        // Log the original vertex 0
+        Vector3 oldLocal = mesh.vertices[0];
+        Debug.Log($"Before UpdateMesh(): vertex[0] local = {oldLocal}");
+
+        // Move particle[0] upward
+        particles[0].position += Vector3.up * 2.0f;
+        particles[5].position += Vector3.right * 2.0f;
+        particles[10].position += Vector3.forward * 2.0f;
+
+        // Call UpdateMesh() to push new positions back to mesh
+        UpdateMesh();
+
+        // Log the new vertex 0 position
+        Vector3 newLocal = mesh.vertices[0];
+        Debug.Log($"After UpdateMesh(): vertex[0] local = {newLocal}");
+    }
+
+
+    void ResetParticleForces()
+    {
+        for (int i = 0; i < particles.Length; i++)
+        {
+            particles[i].currentForces = Vector3.zero;
+        }
+    }
+
+    void DebugResetForces()
+    {
+        // Add some dummy forces to every particle
+        for (int i = 0; i < particles.Length; i++)
+            particles[i].currentForces = new Vector3(1, 2, 3);
+
+        // Now call ResetParticleForces to clear them
+        ResetParticleForces();
+
+        // Check the result for the first few particles
+        for (int i = 0; i < Mathf.Min(5, particles.Length); i++)
+        {
+            Debug.Log($"Particle {i} currentForces = {particles[i].currentForces}");
+        }
+    }
 
     /// <summary>
     /// Draw a frame with some helper debug render code
