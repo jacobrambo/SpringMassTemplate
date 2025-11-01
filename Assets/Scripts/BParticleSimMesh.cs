@@ -66,7 +66,7 @@ public class BParticleSimMesh : MonoBehaviour
     public Transform groundPlaneTransform;   // the ground plane transform
     public bool handlePlaneCollisions = true; // handle plane collisions flag
     public float particleMass = 1.0f;        // particle mass
-    public bool useGravity = false;           // use gravity flag
+    public bool useGravity = true;           // use gravity flag
     public Vector3 gravity = new Vector3(0, 9.81f, 0); // gravity value
     private Mesh mesh;                      // the mesh
     private BParticle[] particles;          // array of particles
@@ -329,11 +329,12 @@ public class BParticleSimMesh : MonoBehaviour
         if (particles == null || particles.Length == 0) return;
 
         ResetParticleForces();  // clear previous frame’s forces
+        
         ApplyGravity();          // constant downward force (If flag is turned on)
         ApplySpringForces();     // internal spring + damping forces
         ApplyPlanePenaltyForces(); // ground plane contact forces
 
-        Integrate();             // move particles (we’ll write this next)
+        Integrate();             // move particles
         UpdateMesh();            // update mesh for rendering
     }
 
